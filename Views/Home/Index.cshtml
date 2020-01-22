@@ -1,0 +1,82 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+    //unix system time start + gmt
+    var timeStart = new DateTime(1970, 1, 1, 3, 0, 0, 0);
+    var i = 0;
+}
+@model Weather_Forecast_App.Models.WeatherViewModel
+
+<div class="container">
+    @using (Html.BeginForm("Index", "Home", FormMethod.Post))
+    {
+        <input id="city" class="input" name="city" type="text" />
+        <input type="submit" class="btn" value="Find">
+    }
+
+    @if (Model != null) //check model
+    {
+        <div class="current text-center">
+            <h4>City: @Model.currentWeather.name, @Model.currentWeather.sys.country (lon: @Model.currentWeather.coord.lon lat: @Model.currentWeather.coord.lat)</h4>
+            <h4>Current date: @DateTime.Now.ToShortDateString()</h4>
+            <h4>Current Weather</h4>
+            <div class="row">
+                <div class="col">
+                    @foreach (var current in Model.currentWeather.weather)
+                    {
+                        <img src="@Url.Content(string.Format("http://openweathermap.org/img/wn/{0}@2x.png", current.icon))" alt="" />
+                        <p>@current.main</p>
+                        <p>@current.description</p>
+                    }
+                    <p>Sunrise: @timeStart.AddSeconds(Model.currentWeather.sys.sunrise).TimeOfDay</p>
+                    <p>Sunset: @timeStart.AddSeconds(Model.currentWeather.sys.sunset).TimeOfDay</p>
+                </div>
+                <div class="col">
+                    <p>Current temp: @Model.currentWeather.main.temp°C</p>
+                    <p>Max temp: @Model.currentWeather.main.temp_max°C</p>
+                    <p>Min temp: @Model.currentWeather.main.temp_min°C</p>
+                    <p>Pressure: @Model.currentWeather.main.pressure hPa</p>
+                    <p>Humidity: @Model.currentWeather.main.humidity%</p>
+                    <p>Wind: @Model.currentWeather.wind.speed m/s</p>
+                </div>
+            </div>
+        </div>
+        <div class="row forecast justify-content-center">
+            <h4>Weather forecast</h4>
+            @foreach (var forecast in Model.forecastWeather.list)
+            {
+                @if (timeStart.AddSeconds(forecast.dt).Day != timeStart.AddSeconds(i).Day) //show only 5 dates
+                {
+                    <div class="my-auto col-12">
+                        <h5>@timeStart.AddSeconds(forecast.dt).ToString("dd.MM.yy")</h5>
+                    </div>
+                }
+                i = forecast.dt;
+                @foreach (var weatherValue in forecast.weather)
+                {
+                    <div class="text-center forecast-item">
+                        <h6>@timeStart.AddSeconds(forecast.dt).ToShortTimeString()</h6>
+                        <div class="row">
+                            <div class="my-auto">
+                                <img src="@Url.Content(string.Format("http://openweathermap.org/img/wn/{0}@2x.png", weatherValue.icon))" alt="" />
+                                <p>@weatherValue.main</p>
+                                <p>@weatherValue.description</p>
+                            </div>
+                            <div class="my-auto">
+                                <p>Max temp: @forecast.main.temp_max°C</p>
+                                <p>Min temp: @forecast.main.temp_min°C</p>
+                                <p>Pressure: @forecast.main.pressure hPa</p>
+                                <p>Humidity: @forecast.main.humidity%</p>
+                                <p>Wind: @forecast.wind.speed m/s</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+    else
+    {
+        <p>City not found</p>
+    }
+</div>
+
